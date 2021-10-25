@@ -1,0 +1,49 @@
+/snap/clion/169/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_DEPENDS_USE_COMPILER=FALSE -G "CodeBlocks - Unix Makefiles" /home/jrsoares/Desktop/faastccorg/cacheTCC
+-- The C compiler identification is GNU 9.3.0
+-- The CXX compiler identification is GNU 9.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+CMake Error at CMakeLists.txt:56 (ADD_SUBDIRECTORY):
+  ADD_SUBDIRECTORY given source "common/vendor/spdlog" which is not an
+  existing directory.
+
+
+CMake Error at CMakeLists.txt:57 (ADD_SUBDIRECTORY):
+  ADD_SUBDIRECTORY given source "common/vendor/yamlcpp" which is not an
+  existing directory.
+
+
+CMake Error at CMakeLists.txt:58 (ADD_SUBDIRECTORY):
+  ADD_SUBDIRECTORY given source "common/vendor/zeromq" which is not an
+  existing directory.
+
+
+CMake Error at CMakeLists.txt:59 (ADD_SUBDIRECTORY):
+  ADD_SUBDIRECTORY given source "common/vendor/zeromqcpp" which is not an
+  existing directory.
+
+
+-- Found Protobuf: /usr/lib/x86_64-linux-gnu/libprotobuf.so;-lpthread (found version "3.6.1") 
+CMake Error at CMakeLists.txt:89 (INCLUDE):
+  INCLUDE could not find requested file:
+
+    common/cmake/clang-format.cmake
+
+
+CMake Error at CMakeLists.txt:90 (INCLUDE):
+  INCLUDE could not find requested file:
+
+    common/cmake/CodeCoverage.cmake
+
+
+-- Configuring incomplete, errors occurred!
+See also "/home/jrsoares/Desktop/faastccorg/cacheTCC/cmake-build-debug/CMakeFiles/CMakeOutput.log".
+See also "/home/jrsoares/Desktop/faastccorg/cacheTCC/cmake-build-debug/CMakeFiles/CMakeError.log".
