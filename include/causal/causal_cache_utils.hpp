@@ -11,7 +11,7 @@
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
-
+//  Modifications copyright (C) 2021 Taras Lykhenko, Rafael Soares
 #ifndef INCLUDE_CAUSAL_CAUSAL_CACHE_UTILS_HPP_
 #define INCLUDE_CAUSAL_CAUSAL_CACHE_UTILS_HPP_
 
