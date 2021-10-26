@@ -1,7 +1,5 @@
 # Anna Cache TCC
 
-[![Build Status](https://travis-ci.com/hydro-project/anna-cache.svg?branch=master)](https://travis-ci.com/hydro-project/anna-cache)
-[![codecov](https://codecov.io/gh/hydro-project/anna-cache/branch/master/graph/badge.svg)](https://codecov.io/gh/hydro-project/anna-cache)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 The CacheTCC from FaaSTCC was based on the [Anna Cache](https://github.com/hydro-project/anna-cache) work by [RISE Lab](https://rise.cs.berkeley.edu) at [UC Berkeley](https://berkeley.edu). 
