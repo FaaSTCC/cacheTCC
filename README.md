@@ -15,4 +15,4 @@ The cache is currently not designed to be a stand-alone data store, but it could
 
 ## License
 
-The Hydro project is licensed under the [Apache v2 License](LICENSE).
+FaaSTCC is licensed under the [Apache v2 License](LICENSE).
