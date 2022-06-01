@@ -42,8 +42,7 @@ string map_to_string(map<string,std::shared_ptr<DataType>>  &m) {
 void run(KvsClientInterface *client, Address ip, unsigned thread_id) {
   string log_file = "causal_cache_log_" + std::to_string(thread_id) + ".txt";
   string log_name = "causal_cache_log_" + std::to_string(thread_id);
-  auto log = spdlog::stdout_color_mt("console");
-  //auto log = spdlog::basic_logger_mt(log_name, log_file, true);
+  auto log = spdlog::basic_logger_mt(log_name, log_file, true);
   log->flush_on(spdlog::level::info);
 
   zmq::context_t *context = client->get_context();
@@ -54,31 +53,9 @@ void run(KvsClientInterface *client, Address ip, unsigned thread_id) {
   set<Key> key_set;
 
   StoreType unmerged_store;
-    /*
-  int num_keys_warmup = 1000000;
-    log->info("Began writing keys");
-    string serialized_lattice;
-    LWWPairLattice<string> l1 = LWWPairLattice<string>(TimestampValuePair<string>(0,0,"0"));
-    serialized_lattice = serialize(l1);
-    for (int i = 0; i < num_keys_warmup; i++){
-      string key = 'k' + std::to_string(i);
-        std::shared_ptr<DataType> lattice;
-        lattice = std::make_shared<DataType>(LWWPairLattice<string>(TimestampValuePair<string>(0,0,serialized_lattice)));
-      unmerged_store.insert(pair<string,std::shared_ptr<DataType>>(key, lattice));
-      key_set.insert(key);
-  }
-    log->info("Finished writing keys");
-    */
   InPreparationType in_preparation;
   StoreType causal_cut_store;
-  string previous_serialized;
-  std::unordered_set<Key> subscribed_keys;
-  StringSet default_set;
-  for (int i = 0; i < 10000; i++){
-      subscribed_keys.insert("k" + std::to_string(i));
-      default_set.add_keys("k" + std::to_string(i));
-      key_set.insert("k" + std::to_string(i));
-  }
+
   map<Key, set<Key>> to_fetch_map;
   map<Key, std::unordered_map<VectorClock, set<Key>, VectorClockHash>>
       cover_map;
@@ -168,10 +145,10 @@ void run(KvsClientInterface *client, Address ip, unsigned thread_id) {
         Key key = tuple.key();
         // if we are no longer caching this key, then we simply ignore updates
         // for it because we received the update based on outdated information
+        if (key_set.find(key) == key_set.end()) {
+          continue;
+        }
 
-          if (key_set.find(key) == key_set.end()) {
-              continue;
-          }
         process_response(tuple, unmerged_store, pushers, client, log, pending_key_requests, pendingClientResponse);
 
       }
@@ -208,10 +185,11 @@ void run(KvsClientInterface *client, Address ip, unsigned thread_id) {
         Key key = tuple.key();
         // if we are no longer caching this key, then we simply ignore updates
         // for it because we received the update based on outdated information
-          if (key_set.find(key) == key_set.end() && pending_key_requests.find(key) ==  pending_key_requests.end()) {
-              log->info("Key {} will not be processed", tuple.key());
-              continue;
-          }
+        if (key_set.find(key) == key_set.end() && pending_key_requests.find(key) ==  pending_key_requests.end()) {
+            log->info("Key {} will not be processed", tuple.key());
+            continue;
+        }
+
         process_response(tuple, unmerged_store, pushers, client, log, pending_key_requests, pendingClientResponse);
 
       }
@@ -228,22 +206,14 @@ void run(KvsClientInterface *client, Address ip, unsigned thread_id) {
     // caching; we only do this periodically because we are okay with receiving
     // potentially stale updates
     if (duration >= kCausalCacheReportThreshold) {
+      StringSet set;
 
-        bool flag = true;
       for (const auto &pair : unmerged_store) {
-          if (subscribed_keys.find(pair.first) == subscribed_keys.end()){
-              flag = false;
-              subscribed_keys.insert(pair.first);
-              default_set.add_keys(pair.first);
-          }
+        set.add_keys(pair.first);
       }
-        string serialized;
-        if (flag){
-            serialized = previous_serialized;
-        } else {
-            default_set.SerializeToString(&serialized);
-            previous_serialized = serialized;
-        }
+
+      string serialized;
+      set.SerializeToString(&serialized);
 
       LWWPairLattice<string> val(TimestampValuePair<string>(
           generate_timestamp(thread_id), serialized));

@@ -33,6 +33,8 @@ fi
 git remote add origin https://github.com/$REPO_ORG/cacheTCC
 git fetch -p origin
 git checkout -b brnch origin/$REPO_BRANCH
+git submodule sync
+git submodule update
 
 cd build && make -j4 && cd ..
 

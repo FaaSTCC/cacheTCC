@@ -12,6 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+
 class ReadCacheState : public State {
   map<Key,KeyValueEntry> result_;
   map<Key,KeyValueEntry> result_possible_;
@@ -40,26 +41,29 @@ public:
   }
 
   void handleCache(KeyTuple tuple) override{
-      if (keys_.find(tuple.key()) != keys_.end()){
-          keys_.erase(tuple.key());
-          if(tuple.payload() == ""){
-              result_.insert(pair<Key,KeyValueEntry>{tuple.key(),result_possible_.at(tuple.key())});
-          }else{
-              result_.insert(pair<Key,KeyValueEntry>{tuple.key(),KeyValueEntry(tuple.key(),tuple.payload(), tuple.t_low(), tuple.t_high())});
-          }
-          if(keys_.size() == 0){
-              CausalResponse clientResponse;
-              for (pair<Key, KeyValueEntry> entry : result_) {
-                  CausalTuple *tp = clientResponse.add_tuples();
-                  tp->set_key(entry.first);
-                  tp->set_payload(serialize(DataType{entry.second.tvp}));
-              }
-              string resp_string;
-              clientResponse.SerializeToString(&resp_string);
-              kZmqUtil->send_string(resp_string, &pushers_[address_]);
-              delete this->context_;
-          }
+    keys_.erase(tuple.key());
+    if(tuple.payload() == ""){
+      result_.insert(pair<Key,KeyValueEntry>{tuple.key(),result_possible_.at(tuple.key())});
+    }else{
+      result_.insert(pair<Key,KeyValueEntry>{tuple.key(),KeyValueEntry(tuple.key(),tuple.payload(), tuple.t_low(), tuple.t_high())});
+    }
+
+    if(keys_.size() == 0){
+      CausalResponse clientResponse;
+      for (pair<Key, KeyValueEntry> entry : result_) {
+        CausalTuple *tp = clientResponse.add_tuples();
+        tp->set_key(entry.first);
+        tp->set_payload(serialize(DataType{entry.second.tvp}));
       }
+      string resp_string;
+      clientResponse.SerializeToString(&resp_string);
+      kZmqUtil->send_string(resp_string, &pushers_[address_]);
+      delete this->context_;
+    }
+
+
+
+
   }
 };
 

@@ -12,6 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //  Modifications copyright (C) 2021 Taras Lykhenko, Rafael Soares
+
 #include <causal/causal_object.hpp>
 #include "cacheTransaction.cpp"
 #include "cacheState.cpp"
@@ -87,30 +88,25 @@ void get_request_handler(
   for (Key key : keys) {
       log->info("Got request to key {}", key);
 
+
       if (cache_store.find(key) != cache_store.end()) {
           log->info("Have key {} in cache", key);
 
           auto cache_entry = cache_store.at(key);
       if (cache_entry->reveal().timestamp <= t_high && t_low <= cache_entry->reveal().promise) {
-          log->info("Key {} is valid in cache", key);
 
-          response.insert(pair<Key, CausalObject>{key, CausalObject{key,cache_entry->reveal().value, cache_entry->reveal().timestamp, cache_entry->reveal().promise}});
+        response.insert(pair<Key, CausalObject>{key, CausalObject{key,cache_entry->reveal().value, cache_entry->reveal().timestamp, cache_entry->reveal().promise}});
         d_low = std::max({d_low, cache_store.at(key)->reveal().timestamp});
       } else {
-          log->info("Must request Key {} to storage", key);
-
-          storageReadKeys.insert(key);
-        if (t_low >= cache_entry->reveal().promise) {
-            log->info("Key {} has possible response with t_low {}", key, t_low);
-
-            possible_response.insert(pair<Key, CausalObject>{key, CausalObject{key,cache_entry->reveal().value, cache_entry->reveal().timestamp, cache_entry->reveal().promise}});
+        storageReadKeys.insert(key);
+        if (t_low > cache_entry->reveal().promise) {
+          possible_response.insert(pair<Key, CausalObject>{key, CausalObject{key,cache_entry->reveal().value, cache_entry->reveal().timestamp, cache_entry->reveal().promise}});
         }
         key_t_low.insert(pair<Key, unsigned long long>{key, cache_entry->reveal().timestamp});
 
       }
     } else {
-          log->info("Requesting key {} to storage", key);
-          storageReadKeys.insert(key);
+      storageReadKeys.insert(key);
       key_t_low.insert(pair<Key, unsigned long long>{key, std::numeric_limits<unsigned long long>::min()});
     }
   }
@@ -119,9 +115,7 @@ void get_request_handler(
     if (kv.second.promise >= d_low) {
       d_high = std::min({d_high, kv.second.promise});
     } else {
-        log->info("Key {} must be requested to storage", kv.first);
-        possible_response.insert(pair<Key, CausalObject>{kv.first, CausalObject{kv.first,kv.second.payload, kv.second.timestamp, kv.second.promise}});
-        erase.insert(kv.first);
+      erase.insert(kv.first);
       storageReadKeys.insert(kv.first);
       key_t_low.insert(pair<Key, unsigned long long>{kv.first, kv.second.timestamp});
     }
@@ -152,6 +146,11 @@ void get_request_handler(
     }
   }
 
+
+
+
+
+
   for (Key key: erase2) {
     storageReadKeys.erase(key);
     key_t_low.erase(key);
@@ -160,10 +159,10 @@ void get_request_handler(
     */
   if (missing_keys.size() != 0) {
     if(storageReadKeys.size() != 0){
-      client->readSliceTx(storageReadKeys, key_t_low, d_high, d_high);
+      client->readSliceTx(storageReadKeys, key_t_low, t_high, d_high);
     }
 
-    State * state =new ReadCacheState(missing_keys, storageReadKeys, key_t_low, d_high, d_high, response, possible_response, causalRequest.response_address(),pendingClientResponse, log);
+    State * state =new ReadCacheState(missing_keys, storageReadKeys, key_t_low, d_high, d_high, response, possible_response, causalRequest.response_address(),pendingClientResponse);
     for(Key key :missing_keys){
       if (pending_key_requests.find(key) == pending_key_requests.end()) {
         pending_key_requests.insert(pair<Key, std::multimap<unsigned long long, State*>>{key,std::multimap<unsigned long long, State*>{}});

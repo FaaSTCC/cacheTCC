@@ -12,6 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //  Modifications copyright (C) 2021 Taras Lykhenko, Rafael Soares
+
 #include <causal/causal_object.hpp>
 #include "causal/causal_cache_utils.hpp"
 #include "causal/causal_state.hpp"
@@ -29,7 +30,7 @@ void process_response(
     log->info("Got response for key {}", tuple.key());
 
   if(unmerged_store.find(tuple.key())==unmerged_store.end()){
-      log->info("Key {} is not in unmerged store", tuple.key());
+      log->info("Key {} is in unmerged store", tuple.key());
 
       unmerged_store.insert(pair<Key, std::shared_ptr<DataType>>{tuple.key(), lattice});
     }else{
@@ -48,25 +49,17 @@ void process_response(
             log->info("Pending key {} is handled in state", tuple.key());
 
             it->second->handleCache(CausalObject(tuple.key(),lattice->reveal().value,lattice->reveal().timestamp,lattice->reveal().promise));
-              log->info("Handled cache for key {}", tuple.key());
-
-              it = pending_key_requests.at(tuple.key()).erase(it);
+          it = pending_key_requests.at(tuple.key()).erase(it);
         }else{
           break;
         }
       }
-        if (pending_key_requests.at(tuple.key()).empty()){
-            log->info("Pending request for key {} is empty", tuple.key());
-
-            pending_key_requests.erase(tuple.key());
-      }
     }
-    log->info("Completed");
-
+    if(pending_key_requests.find(tuple.key()) == pending_key_requests.end()){
+      pending_key_requests.erase(tuple.key());
+    }
     while(!pendingClientResponse_.empty()){
-        log->info("Starting response to client");
-
-        auto entry = pendingClientResponse_.front();
+      auto entry = pendingClientResponse_.front();
       pendingClientResponse_.pop();
       auto response = entry.second;
       CausalResponse clientResponse;
